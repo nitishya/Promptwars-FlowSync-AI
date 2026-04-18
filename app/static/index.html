@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowSync AI - Venue Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-border: rgba(255, 255, 255, 0.15);
+            --text-main: #f8fafc;
+            --text-muted: #cbd5e1;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: var(--text-main);
+            margin: 0;
+            padding: 15px 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 0 10px;
+        }
+
+        .header-titles {
+            text-align: left;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1rem;
+            margin-top: 5px;
+            font-weight: 300;
+        }
+
+        .controls {
+            text-align: right;
+            margin-top: 0;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background-size: cover;
+            background-position: center;
+            border: 1px solid var(--card-border);
+            border-top: 4px solid var(--accent);
+            border-radius: 16px;
+            padding: 15px 20px;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            background-color: transparent;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.85));
+            z-index: 0;
+        }
+
+        .card:hover {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.7);
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        .card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .zone-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .count {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin: 10px 0;
+            line-height: 1;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .count-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .density-Low { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .density-Low::before { background: #34d399; box-shadow: 0 0 8px #34d399; }
+
+        .density-Medium { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+        .density-Medium::before { background: #fbbf24; box-shadow: 0 0 8px #fbbf24; }
+
+        .density-High { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .density-High::before { background: #f87171; box-shadow: 0 0 8px #f87171; }
+
+        .divider {
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+            margin: 15px 0 10px 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            text-align: left;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 3px;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .trend-icon {
+            font-size: 0.9em;
+            margin-left: 4px;
+        }
+
+        .wait-time {
+            grid-column: span 2;
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .wait-time .stat-value { color: #fbbf24; }
+
+        button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        button:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .pulse {
+            animation: pulse-animation 2s infinite;
+        }
+
+        @keyframes pulse-animation {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        .footer {
+            margin-top: 80px;
+            padding-top: 50px;
+            padding-bottom: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: #94a3b8;
+            font-size: 0.85rem;
+            background: rgba(15, 23, 42, 0.4);
+        }
+
+        .footer-wrapper {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-brand {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer-logo {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #ffffff;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .footer-desc {
+            max-width: 350px;
+            line-height: 1.6;
+        }
+
+        .footer-links-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer-links-group strong {
+            color: #ffffff;
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+            letter-spacing: 0.5px;
+        }
+
+        .footer-links-group a {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .footer-links-group a:hover {
+            color: var(--accent);
+        }
+
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 25px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .developer-credit {
+            font-weight: 300;
+        }
+
+        .developer-credit strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .header-titles {
+                text-align: center;
+            }
+            
+            .controls {
+                text-align: center;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .count {
+                font-size: 2.4rem;
+            }
+
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 30px;
+                text-align: center;
+            }
+            
+            .footer-brand {
+                grid-column: span 1;
+                align-items: center;
+            }
+
+            .footer-links-group {
+                align-items: center;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="header-titles">
+            <h1>FlowSync AI</h1>
+            <div class="subtitle">Live Venue Intelligence & Crowd Heatmap</div>
+        </div>
+        <div class="controls">
+            <button id="sync-btn" onclick="forceSync()">Sync Now</button>
+            <p id="status-text" style="font-size: 0.8rem; color: #94a3b8; margin-top: 8px; margin-bottom: 0;">
+                <span class="pulse" style="display:inline-block; width:8px; height:8px; background:#10b981; border-radius:50%; margin-right:6px;"></span>
+                Live connection established. Auto-refreshing every 3s.
+            </p>
+        </div>
+    </div>
+    
+    <div class="container" id="dashboard">
+        <!-- Cards will be populated here -->
+    </div>
+
+    <div class="footer">
+        <div class="footer-wrapper">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="footer-logo">FlowSync AI</div>
+                    <div class="footer-desc">Next-generation venue intelligence & dynamic crowd management system. Built to optimize flow and enhance experiences.</div>
+                </div>
+                
+                <div class="footer-links-group">
+                    <strong>Connect</strong>
+                    <a href="https://www.linkedin.com/in/nitishyadav866/" target="_blank">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                        LinkedIn
+                    </a>
+                    <a href="https://github.com/nitishya" target="_blank">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                        GitHub
+                    </a>
+                </div>
+
+                <div class="footer-links-group">
+                    <strong>Legal</strong>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <div class="copyright">
+                    &copy; 2026 FlowSync AI. All rights reserved.
+                </div>
+                <div class="developer-credit">
+                    Developed by <strong>Nitish Kumar Yadav</strong> • Delhi, India 🇮🇳
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mapping zones to beautiful stadium/venue Unsplash images
+        const zoneImages = {
+            "Gate A": "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&q=80&w=800",
+            "Gate B": "https://images.unsplash.com/photo-1577223625816-7546f13df25d?auto=format&fit=crop&q=80&w=800",
+            "Food Court": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=800",
+            "Parking": "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&q=80&w=800",
+            "Main Stand": "https://images.unsplash.com/photo-1504450758481-7338eba7524a?auto=format&fit=crop&q=80&w=800",
+            "Restrooms": "/static/restroom_bg.png"
+        };
+
+        const getTrendIcon = (trend) => {
+            if (trend === 'Increasing') return '<span style="color:#f87171">↗</span>';
+            if (trend === 'Decreasing') return '<span style="color:#34d399">↘</span>';
+            return '<span style="color:#94a3b8">→</span>';
+        };
+
+        const formatNumber = (num) => {
+            if (num == null || isNaN(num)) return '--';
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 10000) return (num / 1000).toFixed(1) + 'k';
+            return num.toLocaleString();
+        };
+
+        async function forceSync() {
+            const btn = document.getElementById('sync-btn');
+            const originalText = btn.innerText;
+            btn.innerText = 'Syncing...';
+            btn.style.opacity = '0.7';
+            btn.style.cursor = 'wait';
+            btn.disabled = true;
+            
+            await fetchData();
+            
+            // Hold the state briefly so the user sees the visual feedback
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                btn.disabled = false;
+            }, 600);
+        }
+
+        async function fetchData() {
+            try {
+                const statusText = document.getElementById('status-text');
+                if (statusText && statusText.style.color !== '') {
+                    statusText.innerHTML = '<span class="pulse" style="display:inline-block; width:8px; height:8px; background:#10b981; border-radius:50%; margin-right:6px;"></span> Live connection established. Auto-refreshing every 3s.';
+                    statusText.style.color = ''; // reset
+                }
+                const [heatRes, predRes, queueRes] = await Promise.all([
+                    fetch('/api/heatmap'),
+                    fetch('/api/predict'),
+                    fetch('/api/queue')
+                ]);
+
+                const heatData = await heatRes.json();
+                const predData = await predRes.json();
+                const queueData = await queueRes.json();
+
+                const predictions = {};
+                predData.forEach(p => { predictions[p.zone] = p; });
+                
+                const queues = {};
+                queueData.forEach(q => { queues[q.zone] = q; });
+
+                const container = document.getElementById('dashboard');
+                container.innerHTML = '';
+
+                heatData.zones.forEach(zoneData => {
+                    const pred = predictions[zoneData.zone];
+                    const queue = queues[zoneData.zone];
+                    const bgImage = zoneImages[zoneData.zone] || "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&q=80&w=800";
+                    
+                    let queueHtml = '';
+                    if (queue) {
+                        let capacityWarning = queue.is_at_capacity ? ' <span style="color:#ef4444; font-size:0.8em; font-weight:700; margin-left:5px;">(FULL)</span>' : '';
+                        queueHtml = `
+                        <div class="stat-box wait-time">
+                            <div class="stat-label">Estimated Wait Time</div>
+                            <div class="stat-value">~${queue.estimated_wait_time_minutes} min${capacityWarning}</div>
+                        </div>`;
+                    }
+
+                    // Dynamically set accent color line based on density
+                    let accentColor = '#3b82f6';
+                    if(zoneData.density_level === 'High') accentColor = '#ef4444';
+                    else if(zoneData.density_level === 'Medium') accentColor = '#f59e0b';
+                    else if(zoneData.density_level === 'Low') accentColor = '#10b981';
+
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.style.setProperty('--accent', accentColor);
+                    // Apply background image inline
+                    card.style.backgroundImage = `url('${bgImage}')`;
+                    
+                    card.innerHTML = `
+                        <div class="zone-name">${zoneData.zone}</div>
+                        <div class="badge density-${zoneData.density_level}">${zoneData.density_level}</div>
+                        
+                        <div class="count">${formatNumber(zoneData.count)}</div>
+                        <div class="count-label">Active People</div>
+                        
+                        <div class="divider"></div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <div class="stat-label">Prediction (10m)</div>
+                                <div class="stat-value">${pred ? formatNumber(pred.predicted_count) : '--'}</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Flow</div>
+                                <div class="stat-value" style="font-size:1rem;">
+                                    ${pred ? pred.trend : '--'} 
+                                    ${pred ? getTrendIcon(pred.trend) : ''}
+                                </div>
+                            </div>
+                            ${queueHtml}
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                
+                const statusText = document.getElementById('status-text');
+                if (statusText) {
+                    statusText.innerHTML = '<span style="display:inline-block; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-right:6px;"></span> Connection lost. Retrying...';
+                    statusText.style.color = '#ef4444';
+                }
+                
+                const container = document.getElementById('dashboard');
+                if (container && container.children.length === 0) {
+                     container.innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; color: #ef4444; padding: 50px; background: rgba(239, 68, 68, 0.1); border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.2);">
+                            <h2 style="margin-top:0;">Server Offline</h2>
+                            <p>Unable to connect to the FlowSync AI backend. Please ensure the server is running on port 8080.</p>
+                        </div>`;
+                }
+            }
+        }
+
+        // Initial fetch
+        fetchData();
+        
+        // Auto-refresh every 3 seconds
+        setInterval(fetchData, 3000);
+    </script>
+</body>
+</html>
