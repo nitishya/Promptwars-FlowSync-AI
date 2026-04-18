@@ -5,7 +5,7 @@ FlowSync AI is an intelligent backend and dashboard designed to manage crowd den
 
 ---
 
-## 🚀 Key Features You Built
+## 🚀 Key Features
 
 1. **AI Congestion Prediction:**
    *   Implemented an algorithm that takes snapshots of historical crowd data and uses moving averages to predict what the crowd density will be 10 minutes in the future.
